@@ -89,7 +89,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"Excel": {
-											"value": "@item().Excel_name",
+											"value": "@item().Excel_name\n",
 											"type": "Expression"
 										},
 										"sheet": {
@@ -117,7 +117,7 @@
 			}
 		],
 		"annotations": [],
-		"lastPublishTime": "2020-10-09T14:32:26Z"
+		"lastPublishTime": "2020-10-09T14:58:23Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }
