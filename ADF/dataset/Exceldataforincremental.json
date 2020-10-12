@@ -1,0 +1,35 @@
+{
+	"name": "Exceldataforincremental",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			},
+			"SheetName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": {
+				"value": "@dataset().SheetName",
+				"type": "Expression"
+			},
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"container": "prac"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": []
+	}
+}

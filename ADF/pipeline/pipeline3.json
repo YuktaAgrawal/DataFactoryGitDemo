@@ -1,0 +1,159 @@
+{
+	"name": "pipeline3",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlTableforfetchtablesfromblob",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copydatablobtosql",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink"
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "Exceldataforincremental",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@item().SourceFileName",
+											"type": "Expression"
+										},
+										"SheetName": {
+											"value": "@item().SheetName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "AzureSqlTableforincrementalloaddata",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@item().TableName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Stored procedure",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Copydatablobtosql",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[SP_test]",
+								"storedProcedureParameters": {
+									"DateColumnName": {
+										"value": {
+											"value": "@item().DateColumnName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"TableName": {
+										"value": {
+											"value": "@item().TableName",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": []
+	}
+}
